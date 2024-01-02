@@ -1,0 +1,52 @@
+For the proposed ID verification project, various Python packages will be used across different modules. Each module will have specific dependencies tailored to its functionality. Here's a breakdown of the recommended packages for each module:
+
+### 1. Image Processing Module (`image_processing`)
+This module focuses on preprocessing the ID images to enhance their quality and readability. Key tasks include adjusting brightness, contrast, resizing, and filtering.
+
+- **OpenCV** (`opencv-python`): For image manipulation tasks such as resizing, filtering, and transformations.
+- **Pillow** (`Pillow`): An imaging library to handle different image formats and perform basic image processing tasks.
+- **NumPy** (`numpy`): Useful for numerical operations on images, as images are represented as arrays.
+
+### 2. OCR Module (`ocr`)
+The OCR module is responsible for extracting text from the ID images.
+
+- **PyTesseract** (`pytesseract`): A wrapper for Google's Tesseract-OCR Engine. It will extract text from images.
+- **Pillow** (`Pillow`): To work with image formats compatible with Tesseract.
+
+### 3. Face Recognition Module (`face_recognition`)
+This module compares the face in the ID document with a submitted photograph to verify identity.
+
+- **face_recognition** (`face_recognition`): A powerful and simple library for face detection and recognition tasks.
+- **dlib** (`dlib`): A toolkit for making real world machine learning and data analysis applications. It's a dependency for `face_recognition`.
+
+### 4. Validation Module (`validation`)
+The validation module checks the authenticity of the ID by validating its features and the extracted information.
+
+- **Python-Jose** (`python-jose`): A library to handle JWT (JSON Web Tokens) for secure data transmission, useful if the validation process involves API calls.
+- **Requests** (`requests`): To make HTTP requests if the validation involves interacting with external services or databases.
+
+### 5. Main Application (`app`)
+This is the central script integrating all modules.
+
+- **Flask** (`Flask`) or **FastAPI** (`fastapi`): If the application has a web interface.
+- **Python-dotenv** (`python-dotenv`): To manage environment variables for configurations.
+
+### Common Utilities
+Across various modules, you might need some common utility packages:
+
+- **Logging** (`logging`): For logging errors and important system information.
+- **PyYAML** (`pyyaml`): For handling YAML configuration files.
+- **os** and **sys**: Standard Python libraries for interacting with the operating system and Python runtime environment.
+
+### Testing
+For unit tests, the following packages can be used:
+
+- **pytest** (`pytest`): A framework that makes it easy to write simple tests, yet scales to support complex functional testing.
+- **mock** (`mock`): For mocking objects in tests (part of the standard library in Python 3.3 and later).
+
+### Development and Environment Management
+
+- **virtualenv** (`virtualenv`) or **conda**: For creating isolated Python environments.
+- **pip** (`pip`): Python's package installer.
+
+Remember to add these dependencies to your `requirements.txt` file for easy installation. Each module's implementation will dictate the exact use of these packages.
