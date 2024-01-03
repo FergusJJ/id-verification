@@ -1,2 +1,2 @@
-from image_processing.extractor import IDCardExtractor
-from image_processing.pipeline import IDCardProcessor
+from image_processing.pipeline import IDCardPipeliner
+from image_processing.processor import IDCardProcessor

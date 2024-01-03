@@ -1,1 +1,1 @@
-from ocr import read_id
+from ocr.read_id import OCRReader

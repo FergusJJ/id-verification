@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 
-class IDCardExtractor:
+class IDCardProcessor:
     def __init__(self, target_height=768, target_width=1024):
         self.target_height = target_height
         self.target_width = target_width
@@ -93,8 +93,8 @@ class IDCardExtractor:
             return None
 
     def clean_image(self, image):
-        # kernel = cv.cvtColor(cv.MORPH_RECT, (3, 3))
         image = self.convert_to_grayscale(image)
+        image = cv.fastNlMeansDenoising(image, None, 10, 7, 21)
         image = self.apply_blur(image)
 
         clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(12, 12))
@@ -103,6 +103,7 @@ class IDCardExtractor:
         _, image = cv.threshold(
             image, thresh=165, maxval=255, type=cv.THRESH_TRUNC + cv.THRESH_OTSU
         )
+
         return image
 
     def ocr_format_image(self, image):
