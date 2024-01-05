@@ -7,10 +7,9 @@ from image_processing.processor import IDCardProcessor
 class IDCardPipeliner(IDCardProcessor):
     def __init__(self, target_width=1024, target_height=768):
         super().__init__(target_width=target_width, target_height=target_height)
-        self.processed_image = None
 
     @staticmethod
-    def draw_bounding_boxes(base_image, boxes, color=(0, 255, 0), thickness=2):
+    def draw_bounding_boxes(base_image, boxes, color=(125, 255, 0), thickness=2):
         """
         Draw bounding boxes on an image.
 
@@ -56,5 +55,5 @@ class IDCardPipeliner(IDCardProcessor):
             print("No ID card detected.")
             return
         self.processed_image = id_card
-        self.show_image_for_debugging(self.processed_image)
+        # self.show_image_for_debugging(self.processed_image)
         return

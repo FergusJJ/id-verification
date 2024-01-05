@@ -6,8 +6,18 @@ class IDCardProcessor:
     def __init__(self, target_height=768, target_width=1024):
         self.target_height = target_height
         self.target_width = target_width
+        self.processed_image = None
+        self.resized_image = None
 
-    def _overlay_contours(self, image, contours):
+    @staticmethod
+    def _draw_points(image, points):
+        points_image = image.copy()
+        for x, y in points:
+            cv.drawMarker(points_image, (x, y), (0, 255, 0))
+        return points_image
+
+    @staticmethod
+    def _overlay_contours(image, contours):
         contour_image = image.copy()
         cv.drawContours(contour_image, contours, -1, (0, 255, 0), 3)
         return contour_image
@@ -45,15 +55,30 @@ class IDCardProcessor:
 
     @staticmethod
     def apply_blur(image):
-        return cv.GaussianBlur(image, (3, 3), 0)
+        return cv.GaussianBlur(src=image, ksize=(3, 3), sigmaX=0, sigmaY=0)
 
     @staticmethod
-    def apply_threshold(image):
-        _, thresholded = cv.threshold(image, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-        return thresholded
+    def apply_threshold(image, adpative=True, invert=False):
+        if adpative:
+            image = cv.adaptiveThreshold(
+                image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2
+            )
+        else:
+            thresh_type = cv.THRESH_OTSU
+            if invert:
+                thresh_type += cv.THRESH_BINARY_INV
+            else:
+                thresh_type += cv.THRESH_BINARY
+            _, image = cv.threshold(image, 0, 255, thresh_type)
+        return image
 
     @staticmethod
     def opening(image):
+        kernel = np.ones((5, 5), np.uint8)
+        return cv.morphologyEx(image, cv.MORPH_OPEN, kernel)
+
+    @staticmethod
+    def _closing(image):
         kernel = np.ones((5, 5), np.uint8)
         return cv.morphologyEx(image, cv.MORPH_OPEN, kernel)
 
@@ -62,7 +87,19 @@ class IDCardProcessor:
         contours, _ = cv.findContours(image, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         return contours
 
-    def filter_id_card_contours(self, contours, image):
+    @staticmethod
+    def denoise(image):
+        image = cv.fastNlMeansDenoising(image, None, 10, 7, 21)
+        return image
+
+    @staticmethod
+    def enhance_contrast(image):
+        clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(12, 12))
+        image = clahe.apply(image)
+        return image
+
+    @staticmethod
+    def filter_id_card_contours(contours, image):
         img_area = image.shape[0] * image.shape[1]
         img_contours = [
             cnt
@@ -74,7 +111,7 @@ class IDCardProcessor:
     def cut_image_size(self, image):
         grayscale_image = self.convert_to_grayscale(image)
         noise_reduced_image = self.apply_blur(grayscale_image)
-        thresholded_image = self.apply_threshold(noise_reduced_image)
+        thresholded_image = self.apply_threshold(noise_reduced_image, False)
         contours = self.find_contours(thresholded_image)
         if contours:
             max_contour = max(contours, key=cv.contourArea)
@@ -92,27 +129,16 @@ class IDCardProcessor:
             print("no contours found")
             return None
 
-    def clean_image(self, image):
+    def ocr_format_image(self, image):
         image = self.convert_to_grayscale(image)
-        image = cv.fastNlMeansDenoising(image, None, 10, 7, 21)
-        image = self.apply_blur(image)
-
-        clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(12, 12))
-        image = clahe.apply(image)
-
-        _, image = cv.threshold(
-            image, thresh=165, maxval=255, type=cv.THRESH_TRUNC + cv.THRESH_OTSU
-        )
-
+        kernel = np.ones((1, 1), np.uint8)
+        image = self.apply_threshold(image, False, True)
+        image = cv.dilate(image, kernel, iterations=1)
         return image
 
-    def ocr_format_image(self, image):
-        cleaned_image = self.clean_image(image)
-        return cleaned_image
-
     def preprocess_image(self, image):
-        resized_image = self.cut_image_size(image)
-        ocr_formatted_image = self.ocr_format_image(resized_image)
+        self.resized_image = self.cut_image_size(image)
+        ocr_formatted_image = self.ocr_format_image(self.resized_image)
 
         return ocr_formatted_image
 
