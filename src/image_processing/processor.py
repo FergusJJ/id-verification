@@ -119,7 +119,13 @@ class IDCardProcessor:
             if 0.05 * grayscale_image.shape[0] * grayscale_image.shape[
                 1
             ] < cv.contourArea(max_contour):
-                id_image = image[y : y + h, x : x + w]
+                rect = cv.minAreaRect(max_contour)
+                angle = rect[2]
+                rotation_matrix = cv.getRotationMatrix2D(rect[0], angle, 1)
+                rotated_image = cv.warpAffine(
+                    image, rotation_matrix, image.shape[1::-1], flags=cv.INTER_LINEAR
+                )
+                id_image = rotated_image[y : y + h, x : x + w]
                 resized_image = self.resize_to_target_resolution(id_image)
                 return resized_image
             else:
